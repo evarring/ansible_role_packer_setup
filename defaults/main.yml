@@ -1,0 +1,43 @@
+# SPDX-License-Identifier: MIT-0
+---
+# defaults file for ansible_role_packer_setup
+
+# Packer version to install
+
+ansible_role_packer_setup_packer_version: 1.16.0
+
+# By default the role will install official repositories, but if you want packer to be downloaded from the web,
+# uncomment the following two variables or define them somewhere else
+
+# ansible_role_packer_setup_packer_zip: "packer_{{ ansible_role_packer_setup_packer_version }}_linux_amd64.zip"
+# ansible_role_packer_setup_packer_url: >-
+#   {{
+#     "https://releases.hashicorp.com/packer/" +
+#     ansible_role_packer_setup_packer_version + "/" + ansible_role_packer_setup_packer_zip
+#   }}
+
+# By default no packer plugins will be installed, but if you want to automate plugin installs, you can use the sample below
+
+# ansible_role_packer_setup_wu_version: 0.18.4
+# ansible_role_packer_setup_proxmox_version: 1.2.4
+
+# ansible_role_packer_setup_plugins:
+#   - name: "github.com/hashicorp/proxmox"
+#     version: "{{ ansible_role_packer_setup_proxmox_version }}"
+#     binary: "packer-plugin-proxmox_v{{ ansible_role_packer_setup_proxmox_version }}_x5.0_{{ ansible_facts['system'] | lower }}_amd64"
+#     url: >-
+#       {{
+#         "https://github.com/hashicorp/packer-plugin-proxmox/releases/download/v" +
+#         ansible_role_packer_setup_proxmox_version + "/packer-plugin-proxmox_v" +
+#         ansible_role_packer_setup_proxmox_version + "_x5.0_" + ansible_facts['system'] | lower + "_amd64.zip"
+#       }}
+#   - name: "github.com/rgl/windows-update"
+#     version: "{{ ansible_role_packer_setup_wu_version }}"
+#     binary: "packer-plugin-windows-update_v{{ ansible_role_packer_setup_wu_version }}_x5.0_{{ ansible_facts['system'] | lower }}_amd64"
+#     url: >-
+#       {{
+#         "https://github.com/rgl/packer-plugin-windows-update/releases/download/v" +
+#         ansible_role_packer_setup_wu_version + "/packer-plugin-windows-update_v" +
+#         ansible_role_packer_setup_wu_version + "_x5.0_" + ansible_facts['system'] | lower + "_amd64.zip"
+#       }}
+...

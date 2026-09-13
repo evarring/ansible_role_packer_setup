@@ -1,0 +1,44 @@
+---
+- name: Packer plugins install block
+  block:
+    - name: Ensure the existence of the folder
+      ansible.builtin.file:
+        path: "/tmp/{{ plugins.binary }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0755'
+
+    - name: Download pve_template_build_plugins
+      ansible.builtin.get_url:
+        url: "{{ plugins.url }}"
+        dest: "/tmp/{{ plugins.binary }}/{{ plugins.binary }}.zip"
+        checksum: "{{ plugins.checksum | default(omit) }}"
+        mode: '0644'
+      register: download_plugins
+
+    - name: Unzip pve_template_build_plugins
+      ansible.builtin.unarchive:
+        src: "/tmp/{{ plugins.binary }}/{{ plugins.binary }}.zip"
+        dest: "/tmp/{{ plugins.binary }}/"
+        creates: "/tmp/{{ plugins.binary }}/{{ plugins.binary }}"
+        remote_src: true
+        mode: '0655'
+
+    - name: Make unpacked plugins executable
+      ansible.builtin.file:
+        path: "/tmp/{{ plugins.binary }}/{{ plugins.binary }}"
+        mode: '0755'
+
+    - name: Run packer plugins install command
+      ansible.builtin.command:
+        cmd: "packer plugins install --path {{ plugins.binary }} {{ plugins.name }}"
+        creates: "{{ ansible_facts['env']['HOME'] }}/.config/packer/plugins/{{ plugins.name }}/{{ plugins.binary }}"
+      args:
+        chdir: "/tmp/{{ plugins.binary }}"
+
+    - name: Clean up files
+      ansible.builtin.file:
+        path: "/tmp/{{ plugins.binary }}"
+        state: absent
+...

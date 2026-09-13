@@ -1,0 +1,15 @@
+---
+- name: Install dependency packages
+  become: true
+  block:
+    - name: Update repositories cache
+      ansible.builtin.apt:
+        update_cache: true
+        state: present
+
+    - name: Ensure package dependencies are installed
+      ansible.builtin.apt:
+        name: "{{ item.name }}"
+        state: present
+      loop: "{{ ansible_role_packer_setup_dep_debian }}"
+...

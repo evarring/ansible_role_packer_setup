@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: MIT-0
+---
+# vars file for ansible_role_packer_setup
+
+ansible_role_packer_setup_packer_http_min: 8800
+ansible_role_packer_setup_packer_http_max: 8900
+...

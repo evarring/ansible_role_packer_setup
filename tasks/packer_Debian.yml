@@ -1,0 +1,24 @@
+---
+- name: Set arch
+  ansible.builtin.set_fact:
+    hashicorp_arch: "{{ 'amd64' if ansible_facts['architecture'] == 'x86_64' else ansible_facts['architecture'] }}"
+
+- name: Add HashiCorp apt repository
+  ansible.builtin.deb822_repository:
+    name: hashicorp
+    types: deb
+    uris: "https://apt.releases.hashicorp.com"
+    suites: "{{ ansible_facts['distribution_release'] }}"
+    components: main
+    architectures: "{{ hashicorp_arch }}"
+    signed_by: https://apt.releases.hashicorp.com/gpg
+    state: present
+  become: true
+
+- name: Install Packer
+  ansible.builtin.apt:
+    name: packer
+    state: present
+    update_cache: true
+  become: true
+...

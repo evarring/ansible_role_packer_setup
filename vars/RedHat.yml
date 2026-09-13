@@ -1,0 +1,30 @@
+ansible_role_packer_setup_packer_repo_rhel:
+  - name: "hashicorp"
+    description: "Hashicorp Stable - $basearch"
+    file: "hashicorp-stable"
+    baseurl: "https://rpm.releases.hashicorp.com/RHEL/$releasever/$basearch/stable"
+    gpgkey: "https://rpm.releases.hashicorp.com/gpg"
+    enabled: 1
+    gpgcheck: 1
+
+ansible_role_packer_setup_packer_repo_fedora:
+  - name: "hashicorp"
+    description: "Hashicorp Stable - $basearch"
+    file: "hashicorp-stable"
+    baseurl: "https://rpm.releases.hashicorp.com/fedora/$releasever/$basearch/stable"
+    gpgkey: "https://rpm.releases.hashicorp.com/gpg"
+    enabled: 1
+    gpgcheck: 1
+
+ansible_role_packer_setup_python_dep_rh:
+  - name: proxmoxer
+  - name: requests
+  - name: passlib
+  - name: firewall
+
+ansible_role_packer_setup_dep_rh:
+  - name: xorriso
+  - name: python3-pip
+  - name: alternatives
+  - name: unzip
+  - name: python3-packaging

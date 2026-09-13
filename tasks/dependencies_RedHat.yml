@@ -1,0 +1,45 @@
+---
+- name: Install dependency packages
+  become: true
+  block:
+    - name: Update repositories cache
+      ansible.builtin.dnf:
+        update_cache: true
+        state: present
+
+    - name: Ensure package dependencies are installed
+      ansible.builtin.dnf:
+        name: "{{ item.name }}"
+        state: present
+      loop: "{{ ansible_role_packer_setup_dep_rh }}"
+
+- name: Ensure pip dependencies are installed
+  ansible.builtin.pip:
+    name: "{{ item.name }}"
+    state: present
+  loop: "{{ ansible_role_packer_setup_python_dep_rh }}"
+  become: false
+
+- name: Collect systemd info to find used firewall service
+  community.general.systemd_info:
+  register: systemd_info
+
+- name: Configure firewalld
+  when: "'firewalld.service' in systemd_info.units"
+  become: true
+  block:
+    - name: Start firewalld if not running
+      ansible.builtin.systemd:
+        name: firewalld
+        state: started
+        enabled: true
+      when: "'firewalld.service' in systemd_info.units and systemd_info.units['firewalld.service'].activestate == 'inactive'"
+
+    - name: Open firewall ports for packer http and https
+      ansible.posix.firewalld:
+        port: "{{ ansible_role_packer_setup_packer_http_min }}-{{ ansible_role_packer_setup_packer_http_max }}/tcp"
+        permanent: true
+        immediate: true
+        state: enabled
+      when: "'firewalld.service' in systemd_info.units"
+...

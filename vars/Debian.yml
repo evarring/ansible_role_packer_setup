@@ -1,0 +1,4 @@
+ansible_role_packer_setup_dep_debian:
+  - name: xorriso
+  - name: unzip
+  - name: python3-proxmoxer

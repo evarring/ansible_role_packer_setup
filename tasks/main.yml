@@ -1,0 +1,32 @@
+# SPDX-License-Identifier: MIT-0
+---
+# tasks file for ansible_role_packer_setup
+
+- name: Import distro-specific vars
+  ansible.builtin.include_vars:
+    file: "{{ ansible_facts['os_family'] }}.yml"
+
+- name: Import install dependencies tasks
+  ansible.builtin.include_tasks:
+    file: "dependencies_{{ ansible_facts['os_family'] }}.yml"
+
+- name: Import packer install tasks
+  ansible.builtin.include_tasks:
+    file: "packer_{{ ansible_facts['os_family'] }}.yml"
+
+- name: Check which plugins are already installed
+  ansible.builtin.command: packer plugins installed
+  register: installed_plugins
+  changed_when: false
+  when: ansible_role_packer_setup_plugins is defined
+
+- name: Import install plugins tasks
+  ansible.builtin.include_tasks:
+    file: install_plugins.yml
+  when:
+    - ansible_role_packer_setup_plugins is defined
+    - (ansible_facts['env']['HOME'] + '/.config/packer/plugins/' + plugins.name + '/' + plugins.binary) not in installed_plugins.stdout
+  loop: "{{ ansible_role_packer_setup_plugins | default([]) }}"
+  loop_control:
+    loop_var: plugins
+...

@@ -1,0 +1,96 @@
+---
+- name: Block
+  when: ansible_role_packer_setup_packer_url is defined
+  block:
+    - name: Download Packer binary
+      ansible.builtin.get_url:
+        url: "{{ ansible_role_packer_setup_packer_url }}"
+        dest: "/tmp/{{ ansible_role_packer_setup_packer_zip }}"
+        mode: '0644'
+
+    - name: Unzip Packer binary
+      ansible.builtin.unarchive:
+        src: "/tmp/{{ ansible_role_packer_setup_packer_zip }}"
+        dest: /usr/local/bin/
+        remote_src: true
+        mode: '0755'
+
+    - name: Add execute permission to a script (chmod +x)
+      ansible.builtin.file:
+        path: /usr/local/bin/packer
+        mode: "a+x"
+
+    - name: Ensure /usr/local/bin is in PATH for all users
+      ansible.builtin.copy:
+        dest: /etc/profile.d/packer_path.sh
+        content: |
+          # Add packer to system PATH
+          export PATH=$PATH:/usr/local/bin
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Apply environment immediately for current shell
+      ansible.builtin.shell: source /etc/profile.d/packer_path.sh
+      args:
+        executable: /bin/bash
+      changed_when: false
+
+    - name: Clean up
+      ansible.builtin.file:
+        path: "/tmp/{{ ansible_role_packer_setup_packer_zip }}"
+        state: absent
+
+- name: Block
+  become: true
+  when:
+    - ansible_role_packer_setup_packer_url is not defined
+    - ansible_role_packer_setup_packer_repo_rhel is defined
+  block:
+    - name: Configure packer repo
+      ansible.builtin.yum_repository:
+        name: "{{ item.name | default(omit) }}"
+        description: "{{ item.description }}"
+        file: "{{ item.file | default(omit) }}"
+        baseurl: "{{ item.baseurl | default(omit) }}"
+        gpgcheck: "{{ item.gpgcheck | default(omit) }}"
+        gpgkey: "{{ item.gpgkey | default(omit) }}"
+        enabled: "{{ item.enabled | default(omit) }}"
+        state: "{{ item.state | default(omit) }}"
+      loop: "{{ ansible_role_packer_setup_packer_repo_rhel }}"
+      when: ansible_facts['distribution'] != "Fedora"
+
+    - name: Configure packer repo
+      ansible.builtin.yum_repository:
+        name: "{{ item.name | default(omit) }}"
+        description: "{{ item.description }}"
+        file: "{{ item.file | default(omit) }}"
+        baseurl: "{{ item.baseurl | default(omit) }}"
+        gpgcheck: "{{ item.gpgcheck | default(omit) }}"
+        gpgkey: "{{ item.gpgkey | default(omit) }}"
+        enabled: "{{ item.enabled | default(omit) }}"
+        state: "{{ item.state | default(omit) }}"
+      loop: "{{ ansible_role_packer_setup_packer_repo_fedora }}"
+      when: ansible_facts['distribution'] == "Fedora"
+
+    - name: Ensure packer is installed from package manager
+      ansible.builtin.dnf:
+        name: "packer == {{ ansible_role_packer_setup_packer_version }}"
+        state: present
+      when: ansible_facts['distribution'] != "Fedora"
+
+    - name: Ensure packer is installed from package manager
+      ansible.builtin.dnf:
+        name: "packer >= {{ ansible_role_packer_setup_packer_version }}"
+        state: present
+      when: ansible_facts['distribution'] == "Fedora"
+
+- name: Set HashiCorp Packer as the default using alternatives on AlmaLinux
+  community.general.alternatives:
+    name: packer
+    link: /usr/local/bin/packer
+    path: /usr/bin/packer
+    priority: 100
+  when: ansible_facts['distribution'] == "AlmaLinux"
+  become: true
+...
